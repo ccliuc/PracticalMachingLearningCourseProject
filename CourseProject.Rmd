@@ -1,0 +1,79 @@
+### Practical Machine Learning Course Project Report
+### Synoposis
+In this course project, the goal is to use data from accelerometers on the belt, forearm, arm and dumbell of 6 participants, to predict the manner in which they did the barbell lifts. Prediction models were built using the training data set to predict the "classe" variable. Based on the cross validation and out-of-sample error, the model built with random forest algorithm performed the best and was selected. This prediction model was used to predict the 20 different test cases.
+
+### Data Processing
+The training data and test data for this proeject are downloaded from the course website, https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv, https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv. The weight lifting excercies dataset is from Velloso et al, 2013 [1].
+
+#### Reading in the data
+The training and test data were read from .csv files. The data is comma-seperated format with fields that are blank, "NA" and "#DIV/0!" as missing values.
+
+```{r}
+library(knitr)
+trainingData <- read.csv("pml-training.csv", header=TRUE,na.strings=c("","NA","#DIV/0!"))
+testData <- read.csv("pml-testing.csv", header=TRUE,na.strings=c("","NA","#DIV/0!"))
+```
+
+#### Preprocessing the data
+In the datasets, the columns with at least a missing value were ignored. The first 7 columns: "X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp", "new_window" and "num_window" were ignored due to the irrelevancy to the classificaiton. 
+
+```{r}
+trainingData <- trainingData[, colSums(is.na(trainingData)) == 0]
+testData <- testData[, colSums(is.na(testData)) == 0]
+trainingData <- trainingData[,-c(1:7)]
+testData <- testData[,-c(1:7)]
+dim(trainingData)
+# Set an overal random seed.
+set.seed(32343)
+```
+#### Cross-validation and out-of-sample error
+
+```{r}
+library(lattice)
+library(ggplot2)
+library(caret)
+### Split training data to training/testing for one time cross-validation
+inTrain <- createDataPartition(y=trainingData$classe, p=0.75, list=FALSE)
+training <- trainingData[inTrain,]
+testing <- trainingData[-inTrain,]
+
+### predicting with Decision Trees
+library(rpart)
+library(rattle)
+library(rpart.plot)
+modelFit1 <- train(classe ~., data=training, method="rpart")
+fancyRpartPlot(modelFit1$finalModel)
+predictions1 <- predict(modelFit1,newdata=testing)
+confusionMatrix(predictions1,testing$classe)
+error1 <- 1 - confusionMatrix(predictions1,testing$classe)$overall[[1]]
+
+### predicting with Random Forest
+library(randomForest)
+modelFit2 <- randomForest(classe ~ ., data=training, importance=TRUE, ntrees=10)
+predictions2 <- predict(modelFit2,newdata=testing)
+confusionMatrix(predictions2,testing$classe)
+error2 <- 1 - confusionMatrix(predictions2,testing$classe)$overall[[1]]
+```
+The model built using "rpart" gives an expected out-of-sample error of `r error1`, and the model built using "randomForest" gives an expected out-of-sample error of `r error2`, which is close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.
+
+```{r}
+### predicting the test set
+answers <- predict(modelFit2,newdata=testData)
+answers
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(answers)
+
+```
+The prediction results each in a file were submitted to the programming assignment for automated grading.
+
+### References
+[1] Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013
+
