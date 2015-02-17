@@ -94,7 +94,7 @@ library(<span class="pl-vo">randomForest</span>)
 confusionMatrix(<span class="pl-vo">predictions2</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)
 <span class="pl-vo">error2</span> <span class="pl-k">&lt;-</span> <span class="pl-c1">1</span> <span class="pl-k">-</span> confusionMatrix(<span class="pl-vo">predictions2</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)<span class="pl-k">$</span><span class="pl-vo">overall</span>[[<span class="pl-c1">1</span>]]</pre></div>
 
-<p>The model built using "rpart" gives an expected out-of-sample error of <code>r error1</code>, and the model built using "randomForest" gives an expected out-of-sample error of <code>r error2</code>, which is close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.</p>
+<p>The model built using "rpart" gives an expected out-of-sample error of 0.5014, and the model built using "randomForest" gives an expected out-of-sample error of 0.0067, which is smaller and close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.</p>
 
 <div class="highlight highlight-r"><pre><span class="pl-c">### predicting the test set</span>
 <span class="pl-vo">answers</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modelFit2</span>,<span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testData</span>)
