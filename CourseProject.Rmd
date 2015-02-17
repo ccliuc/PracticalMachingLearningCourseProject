@@ -54,7 +54,7 @@ predictions2 <- predict(modelFit2,newdata=testing)
 confusionMatrix(predictions2,testing$classe)
 error2 <- 1 - confusionMatrix(predictions2,testing$classe)$overall[[1]]
 ```
-The model built using "rpart" gives an expected out-of-sample error of `r error1`, and the model built using "randomForest" gives an expected out-of-sample error of `r error2`, which is close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.
+The model built using "rpart" gives an expected out-of-sample error of 0.5014, and the model built using "randomForest" gives an expected out-of-sample error of 0.0067, which is smaller and close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.
 
 ```{r}
 ### predicting the test set
