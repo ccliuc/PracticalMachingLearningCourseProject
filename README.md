@@ -8,7 +8,8 @@ This repo contains the files for the Course Project of Practical Machine Learnin
 * "pml-testing.csv". This is the test dataset for the course project.
 * "problem_id_XX.txt". This is the file containing the classificaiton result of the test case in the test dataset, where  "XX" is the id of the test case, i.e. from 1 to 20.
 
-A gh-pages branch of this repo can be found here http://ccliuc.github.io/pml-courseproject, where the HTML page can be viewed online.
+The compiled HTML page with graph can be opened and viewed after downloading this repo.
+A gh-pages branch of this repo can be found here http://ccliuc.github.io/pml-courseproject.
 
 
 
