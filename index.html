@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Pml-courseproject : ">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Pml-courseproject</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/ccliuc/pml-courseproject">View on GitHub</a>
+
+          <h1 id="project_title">Pml-courseproject</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/ccliuc/pml-courseproject/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/ccliuc/pml-courseproject/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
+<a id="practical-machine-learning-course-project-report" class="anchor" href="#practical-machine-learning-course-project-report" aria-hidden="true"><span class="octicon octicon-link"></span></a>Practical Machine Learning Course Project Report</h3>
+
+<h3>
+<a id="synoposis" class="anchor" href="#synoposis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Synoposis</h3>
+
+<p>In this course project, the goal is to use data from accelerometers on the belt, forearm, arm and dumbell of 6 participants, to predict the manner in which they did the barbell lifts. Prediction models were built using the training data set to predict the "classe" variable. Based on the cross validation and out-of-sample error, the model built with random forest algorithm performed the best and was selected. This prediction model was used to predict the 20 different test cases.</p>
+
+<h3>
+<a id="data-processing" class="anchor" href="#data-processing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Processing</h3>
+
+<p>The training data and test data for this proeject are downloaded from the course website, <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a>, <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a>. The weight lifting excercies dataset is from Velloso et al, 2013 [1].</p>
+
+<h4>
+<a id="reading-in-the-data" class="anchor" href="#reading-in-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reading in the data</h4>
+
+<p>The training and test data were read from .csv files. The data is comma-seperated format with fields that are blank, "NA" and "#DIV/0!" as missing values.</p>
+
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">knitr</span>)
+<span class="pl-vo">trainingData</span> <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s1"><span class="pl-pds">"</span>pml-training.csv<span class="pl-pds">"</span></span>, <span class="pl-v">header</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>,<span class="pl-v">na.strings</span><span class="pl-k">=</span>c(<span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>NA<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>#DIV/0!<span class="pl-pds">"</span></span>))
+<span class="pl-vo">testData</span> <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s1"><span class="pl-pds">"</span>pml-testing.csv<span class="pl-pds">"</span></span>, <span class="pl-v">header</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>,<span class="pl-v">na.strings</span><span class="pl-k">=</span>c(<span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>NA<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>#DIV/0!<span class="pl-pds">"</span></span>))</pre></div>
+
+<h4>
+<a id="preprocessing-the-data" class="anchor" href="#preprocessing-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Preprocessing the data</h4>
+
+<p>In the datasets, the columns with at least a missing value were ignored. The first 7 columns: "X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp", "new_window" and "num_window" were ignored due to the irrelevancy to the classificaiton. </p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">trainingData</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">trainingData</span>[, colSums(is.na(<span class="pl-vo">trainingData</span>)) <span class="pl-k">==</span> <span class="pl-c1">0</span>]
+<span class="pl-vo">testData</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testData</span>[, colSums(is.na(<span class="pl-vo">testData</span>)) <span class="pl-k">==</span> <span class="pl-c1">0</span>]
+<span class="pl-vo">trainingData</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">trainingData</span>[,<span class="pl-k">-</span>c(<span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-c1">7</span>)]
+<span class="pl-vo">testData</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testData</span>[,<span class="pl-k">-</span>c(<span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-c1">7</span>)]
+dim(<span class="pl-vo">trainingData</span>)
+<span class="pl-c"># Set an overal random seed.</span>
+set.seed(<span class="pl-c1">32343</span>)</pre></div>
+
+<h4>
+<a id="cross-validation-and-out-of-sample-error" class="anchor" href="#cross-validation-and-out-of-sample-error" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cross-validation and out-of-sample error</h4>
+
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">lattice</span>)
+library(<span class="pl-vo">ggplot2</span>)
+library(<span class="pl-vo">caret</span>)
+<span class="pl-c">### Split training data to training/testing for one time cross-validation</span>
+<span class="pl-vo">inTrain</span> <span class="pl-k">&lt;-</span> createDataPartition(<span class="pl-v">y</span><span class="pl-k">=</span><span class="pl-vo">trainingData</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-v">p</span><span class="pl-k">=</span><span class="pl-c1">0.75</span>, <span class="pl-v">list</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)
+<span class="pl-vo">training</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">trainingData</span>[<span class="pl-vo">inTrain</span>,]
+<span class="pl-vo">testing</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">trainingData</span>[<span class="pl-k">-</span><span class="pl-vo">inTrain</span>,]
+
+<span class="pl-c">### predicting with Decision Trees</span>
+library(<span class="pl-vo">rpart</span>)
+library(<span class="pl-vo">rattle</span>)
+library(<span class="pl-vo">rpart.plot</span>)
+<span class="pl-vo">modelFit1</span> <span class="pl-k">&lt;-</span> train(<span class="pl-vo">classe</span> <span class="pl-k">~</span>., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">method</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>rpart<span class="pl-pds">"</span></span>)
+fancyRpartPlot(<span class="pl-vo">modelFit1</span><span class="pl-k">$</span><span class="pl-vo">finalModel</span>)
+<span class="pl-vo">predictions1</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modelFit1</span>,<span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">predictions1</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)
+<span class="pl-vo">error1</span> <span class="pl-k">&lt;-</span> <span class="pl-c1">1</span> <span class="pl-k">-</span> confusionMatrix(<span class="pl-vo">predictions1</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)<span class="pl-k">$</span><span class="pl-vo">overall</span>[[<span class="pl-c1">1</span>]]
+
+<span class="pl-c">### predicting with Random Forest</span>
+library(<span class="pl-vo">randomForest</span>)
+<span class="pl-vo">modelFit2</span> <span class="pl-k">&lt;-</span> randomForest(<span class="pl-vo">classe</span> <span class="pl-k">~</span> ., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">importance</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">ntrees</span><span class="pl-k">=</span><span class="pl-c1">10</span>)
+<span class="pl-vo">predictions2</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modelFit2</span>,<span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">predictions2</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)
+<span class="pl-vo">error2</span> <span class="pl-k">&lt;-</span> <span class="pl-c1">1</span> <span class="pl-k">-</span> confusionMatrix(<span class="pl-vo">predictions2</span>,<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)<span class="pl-k">$</span><span class="pl-vo">overall</span>[[<span class="pl-c1">1</span>]]</pre></div>
+
+<p>The model built using "rpart" gives an expected out-of-sample error of <code>r error1</code>, and the model built using "randomForest" gives an expected out-of-sample error of <code>r error2</code>, which is close to zero. Therefore, the random forest model was selected to predict the 20 cases in the test data set.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-c">### predicting the test set</span>
+<span class="pl-vo">answers</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modelFit2</span>,<span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testData</span>)
+<span class="pl-vo">answers</span>
+
+<span class="pl-v">pml_write_files</span> <span class="pl-k">=</span> <span class="pl-k">function</span>(<span class="pl-vo">x</span>){
+  <span class="pl-v">n</span> <span class="pl-k">=</span> length(<span class="pl-vo">x</span>)
+  <span class="pl-k">for</span>(<span class="pl-vo">i</span> <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-vo">n</span>){
+    <span class="pl-v">filename</span> <span class="pl-k">=</span> paste0(<span class="pl-s1"><span class="pl-pds">"</span>problem_id_<span class="pl-pds">"</span></span>,<span class="pl-vo">i</span>,<span class="pl-s1"><span class="pl-pds">"</span>.txt<span class="pl-pds">"</span></span>)
+    write.table(<span class="pl-vo">x</span>[<span class="pl-vo">i</span>],<span class="pl-v">file</span><span class="pl-k">=</span><span class="pl-vo">filename</span>,<span class="pl-v">quote</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>,<span class="pl-v">row.names</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>,<span class="pl-v">col.names</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)
+  }
+}
+
+pml_write_files(<span class="pl-vo">answers</span>)
+</pre></div>
+
+<p>The prediction results each in a file were submitted to the programming assignment for automated grading.</p>
+
+<h3>
+<a id="references" class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h3>
+
+<p>[1] Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Pml-courseproject maintained by <a href="https://github.com/ccliuc">ccliuc</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
